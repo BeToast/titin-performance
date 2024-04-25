@@ -1,97 +1,11 @@
-// import { useState } from "react";
 import "./App.css";
 import ShadowFrame from "./compos/ShadowFrame";
-import waitForElmId from "./generic/waitForElmId";
+import resize from "./resize";
 import { TITIN } from "./svgs";
 
-import { useState, useEffect } from "react";
-
-const [redSlant, setRedSlant] = useState<HTMLElement>();
-const [lukePhoto, setLukePhoto] = useState<HTMLElement>();
-const [slogan, setSlogan] = useState<HTMLElement>();
-
-const getVwVh = (): [number, number] => {
-   return [
-      Math.max(
-         document.documentElement.clientWidth || 0,
-         window.innerWidth || 0,
-      ),
-      Math.max(
-         document.documentElement.clientHeight || 0,
-         window.innerHeight || 0,
-      ),
-   ];
-};
-
-// for red slant rotation
-const rotateRedSlant = (vw: number, vh: number): number => {
-   let tanhInput;
-   //if landscape
-   if (vw > vh) {
-      //red slant has angled spans middle 60% of vh
-      tanhInput = (vh * 0.6) / vw;
-   } //if portrait
-   else {
-      //red slant has angled spans middle 40% of vh
-      tanhInput = (vh * 0.4) / vw;
-   }
-   // console.log(tanhInput);
-   // console.log(`tangent: ${Math.tan(tanhInput)}`);
-
-   //slantAglRad is short for redSlantAngleRadians
-   let slantAglRad = -1 * Math.tanh(tanhInput);
-
-   redSlant!.style.transform = `rotate(${slantAglRad}rad)`;
-   //return angle for positionLuke()
-   return slantAglRad;
-};
-//this function takes angle of redslant*(distance from vp center to lukephoto center) to get -y offest from vp center.
-const positionLuke = (vw: number, vh: number, slantAglRad: number): DOMRect => {
-   const lukeOffset = lukePhoto!.getBoundingClientRect();
-   //adj is the adjacent side of triangle for tanh function
-   const adj = lukeOffset.left + lukeOffset.width * 0.5 - vw * 0.5;
-   //y distance from view center to luke photo center
-   const yFromVpCenterToLukePhotoCenter = -1 * slantAglRad * adj;
-   //calculate the y pos of luke with angle and adjactent to find opposite
-   const lukeYPos = vh * 0.5 - yFromVpCenterToLukePhotoCenter;
-   //position luke
-   lukePhoto!.style.top = `${lukeYPos - lukeOffset.height * 0.5}px`;
-   //return lukeOffset for slogan positioning
-   return lukeOffset;
-};
-//postition slogan relative to luke
-const positionSlogan = (lukeOffset: DOMRect) => {
-   slogan!.style.top = `${lukeOffset.top}px`;
-};
-
-useEffect(() => {
-   //execute all useEffect promises in parallel
-   Promise.all([
-      waitForElmId("#red-slant").then((redSlantEl: HTMLElement) => {
-         setRedSlant(redSlantEl);
-      }),
-      waitForElmId("#luke-photo").then((lukePhotoEl: HTMLElement) => {
-         setLukePhoto(lukePhotoEl);
-      }),
-      waitForElmId("#slogan").then((sloganEl: HTMLElement) => {
-         setSlogan(sloganEl);
-      }),
-   ]).then(() => {
-      resizeHandler();
-   });
-});
-
-addEventListener("resize", () => {
-   resizeHandler();
-});
-const resizeHandler = () => {
-   let [vw, vh] = getVwVh();
-   let slantAglRad = rotateRedSlant(vw, vh);
-   let lukeOffset = positionLuke(vw, vh, slantAglRad);
-   positionSlogan(lukeOffset);
-};
-
 function App() {
+   resize();
+
    return (
       <>
          <div id="red-slant" />
@@ -122,13 +36,89 @@ function App() {
                </div>
             </div>
          </main>
-
-         {/* <div className="p-8">
-               <div className="font-euro text-5xl">MUST BE or nah CAPS</div>
-               <div className="font-aver text-5xl">here is avenir</div>
-            </div> */}
       </>
    );
 }
 
 export default App;
+
+// const getVwVh = (): [number, number] => {
+//    return [
+//       Math.max(
+//          document.documentElement.clientWidth || 0,
+//          window.innerWidth || 0,
+//       ),
+//       Math.max(
+//          document.documentElement.clientHeight || 0,
+//          window.innerHeight || 0,
+//       ),
+//    ];
+// };
+
+// // for red slant rotation
+// const rotateRedSlant = (vw: number, vh: number): number => {
+//    let tanhInput;
+//    //if landscape
+//    if (vw > vh) {
+//       //red slant has angled spans middle 60% of vh
+//       tanhInput = (vh * 0.6) / vw;
+//    } //if portrait
+//    else {
+//       //red slant has angled spans middle 40% of vh
+//       tanhInput = (vh * 0.4) / vw;
+//    }
+//    // console.log(tanhInput);
+//    // console.log(`tangent: ${Math.tan(tanhInput)}`);
+
+//    //slantAglRad is short for redSlantAngleRadians
+//    let slantAglRad = -1 * Math.tanh(tanhInput);
+
+//    redSlant!.style.transform = `rotate(${slantAglRad}rad)`;
+//    //return angle for positionLuke()
+//    return slantAglRad;
+// };
+// //this function takes angle of redslant*(distance from vp center to lukephoto center) to get -y offest from vp center.
+// const positionLuke = (vw: number, vh: number, slantAglRad: number): DOMRect => {
+//    const lukeOffset = lukePhoto!.getBoundingClientRect();
+//    //adj is the adjacent side of triangle for tanh function
+//    const adj = lukeOffset.left + lukeOffset.width * 0.5 - vw * 0.5;
+//    //y distance from view center to luke photo center
+//    const yFromVpCenterToLukePhotoCenter = -1 * slantAglRad * adj;
+//    //calculate the y pos of luke with angle and adjactent to find opposite
+//    const lukeYPos = vh * 0.5 - yFromVpCenterToLukePhotoCenter;
+//    //position luke
+//    lukePhoto!.style.top = `${lukeYPos - lukeOffset.height * 0.5}px`;
+//    //return lukeOffset for slogan positioning
+//    return lukeOffset;
+// };
+// //postition slogan relative to luke
+// const positionSlogan = (lukeOffset: DOMRect) => {
+//    slogan!.style.top = `${lukeOffset.top}px`;
+// };
+
+// useEffect(() => {
+//    //execute all useEffect promises in parallel
+//    Promise.all([
+//       waitForElmId("#red-slant").then((redSlantEl: HTMLElement) => {
+//          setRedSlant(redSlantEl);
+//       }),
+//       waitForElmId("#luke-photo").then((lukePhotoEl: HTMLElement) => {
+//          setLukePhoto(lukePhotoEl);
+//       }),
+//       waitForElmId("#slogan").then((sloganEl: HTMLElement) => {
+//          setSlogan(sloganEl);
+//       }),
+//    ]).then(() => {
+//       resizeHandler();
+//    });
+// });
+
+// addEventListener("resize", () => {
+//    resizeHandler();
+// });
+// const resizeHandler = () => {
+//    let [vw, vh] = getVwVh();
+//    let slantAglRad = rotateRedSlant(vw, vh);
+//    let lukeOffset = positionLuke(vw, vh, slantAglRad);
+//    positionSlogan(lukeOffset);
+// };
